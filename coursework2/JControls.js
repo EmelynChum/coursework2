@@ -671,6 +671,10 @@ JFunction.PreLoadData = function (url) {
                 ResourceData.Images[m2].data.onload = function () {
                     imageLoadPost();
                 }
+                ResourceData.Images[m2].data.onerror = function () {
+                    alert("资源加载失败！")
+                    return;
+                }
             }
         }
     }
