@@ -674,3 +674,31 @@ JFunction.PreLoadData = function (url) {
             }
         }
     }
+
+    function loadAudio(){//加载声音
+        for (var m1 in ResourceData.Sound)  resourceNum++;
+        if(resourceNum==0){
+            audioLoadPost();
+        }else{
+            for (var m1 in ResourceData.Sound) {
+                ResourceData.Sound[m1].data = new Audio();
+                var playMsg = ResourceData.Sound[m1].data.canPlayType('video/ogg');//测试浏览器是否支持该格式声音
+                if ("" != playMsg) {
+                    ResourceData.Sound[m1].data.src=url+ ResourceData.Sound[m1].path + ResourceData.Sound[m1].soundName + ".ogg";
+                } else {
+                    ResourceData.Sound[m1].data.src=url+ ResourceData.Sound[m1].path + ResourceData.Sound[m1].soundName + ".mp3";
+                }
+                ResourceData.Sound[m1].data.addEventListener("canplaythrough", function () {
+                    audioLoadPost();
+                }, false);
+                
+            }
+        }
+    }
+    loadImage();
+    return {
+        done:function (f) {
+            if (f)postAction = f;
+        }
+    }
+};
