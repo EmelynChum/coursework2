@@ -621,3 +621,13 @@ JControls.Tick = Class.create({
         JMain.JTick.handle=setTimeout(JMain.JTick.runOneTime, JMain.JTick.time);
     }
 });
+var JFunction = {};
+JFunction.Random = function (formNum, toNum) {
+    return parseInt(Math.random() * (toNum - formNum + 1) + formNum);
+};
+JFunction.setLSData = function (key, jsonValue) {
+    window.localStorage.setItem(key, JSON.stringify(jsonValue));
+};
+JFunction.getLSData = function (key) {
+    return JSON.parse(window.localStorage.getItem(key));
+};
