@@ -161,6 +161,7 @@ DJDDZ.ToPlay=function(){//出牌
         GMain.DealerNum++;
         setTimeout(DJDDZ.ToPlay, 1500);//暂停1500毫秒，下一位出牌
     }
+}
 DJDDZ.CheckPlayPoker=function(_pokerNumbers){//检查出牌是否符合规则,pokerNumbers从小到大排序
     var pokerType=DJDDZ.GetPokerType(_pokerNumbers);
     if(pokerType==null)return false;//没有获取到牌型
@@ -209,3 +210,95 @@ DJDDZ.IsStraight=function(numbers){//numbers已排序，从小到大
     }
     return true;
 }
+DJDDZ.GetPokerType=function(__pokerNumbers,chaiNum){//获取__pokerNumbers的牌型，__pokerNumbers已排序，从小到大
+    if(chaiNum==null)chaiNum=3;
+    var splitPoker=DJDDZ.SplitPoker(__pokerNumbers,chaiNum);//把牌拆成非组合类型
+    var pokerType={type:"",num:0,length:__pokerNumbers.length};
+    if(splitPoker["12"].length>0){
+        if(pokerType.length==2)pokerType.type="12";//王弹
+        else pokerType= null;
+    }else if(splitPoker["1111"].length>0){
+        if(splitPoker["1111"].length==1){
+            pokerType.num=splitPoker["1111"][0];
+            if(pokerType.length==4) pokerType.type="1111";//炸弹
+            else if(pokerType.length==6&&(splitPoker["1"].length==1||splitPoker["1"].length==2))pokerType.type="111123";//4带2
+            else if(pokerType.length==8&&splitPoker["11"].length==2)pokerType.type="11112233";//4带2对
+            else pokerType= null;
+        }else pokerType= null;
+    }else if(splitPoker["111"].length>0){
+        var l=splitPoker["111"].length;
+        if(l==1||DJDDZ.IsStraight(splitPoker["111"])){//l=1或GMain.SplitPoker["111"]的值连续
+            pokerType.num=splitPoker["111"][0];
+            if(pokerType.length==3*l)pokerType.type="111";//3条，l>=2时为飞机
+            else if(pokerType.length==4*l&&splitPoker["1"].length==l) pokerType.type="1112";//3条带1，l>=2时为飞机
+            else if(pokerType.length==5*l&&splitPoker["11"].length==l)pokerType.type="11122";//3条带1对，l>=2时为飞机
+            else pokerType= null;
+        }else pokerType= null;
+    }else if(splitPoker["11"].length>0){
+        var l=splitPoker["11"].length;
+        if(l==1|| (l>=3&&DJDDZ.IsStraight(splitPoker["11"]))){
+            pokerType.num=splitPoker["11"][0];
+            if(pokerType.length==2*l)pokerType.type="11";//l=1时为对子，l>=3时为连对
+            else pokerType= null;
+        }else pokerType= null;
+    }else if(splitPoker["1"].length>0){
+        var l=splitPoker["1"].length;
+        if(l==1||(l>=5&&DJDDZ.IsStraight(splitPoker["1"]))){
+            pokerType.num=splitPoker["1"][0];
+            pokerType.type="1";
+        }else pokerType= null;
+    } else pokerType=null;
+    if( pokerType==null&&chaiNum>0)pokerType=DJDDZ.GetPokerType(__pokerNumbers,chaiNum-1);
+    return pokerType;
+}
+DJDDZ.GetPokerByType=function(__pokerNumbers,type){//从__pokerNumbers中获取type类型的牌
+    var _pokerNumbers=[];
+    var SPN=[];
+    if(__pokerNumbers.length>=type.length){
+        for(var i=0;i<__pokerNumbers.length;i++) _pokerNumbers[i]=__pokerNumbers[i];//_pokerNumbers从小到大
+        if(type.type=="12"){//王炸
+            if(_pokerNumbers[_pokerNumbers.length-1]==18&&_pokerNumbers[_pokerNumbers.length-2]==17){
+                SPN.splice(0,0,18);
+                SPN.splice(0,0,17);
+            }
+        }else if(type.type=="1"||type.type=="11"||type.type=="111"||type.type=="1111"){//非组合类型
+            var c=GMain.PokerTypes[type.type].allNum-1;
+            for(var j=c;j<_pokerNumbers.length;j++){//从小到大取数值
+                while(j<_pokerNumbers.length&&_pokerNumbers[j]>type.num&&_pokerNumbers[j]==_pokerNumbers[j-c]){
+                    if(SPN.length>0){
+                        if(_pokerNumbers[j]==SPN[0])break;
+                        else if(_pokerNumbers[j]>SPN[0]+1)SPN=[];//如果不能连续则清空已选数
+                    }
+                    for(var k=j;k>=j-c;k--) {
+                        SPN.splice(0,0,_pokerNumbers[k]);//选取数值
+                        _pokerNumbers.splice(j,1);//删除数值
+                    }
+                    if(SPN.length==type.length)break;//选取完成
+                }
+                if(SPN.length==type.length)break;
+            }
+        }else if(type.type=="1112"||type.type=="11122"||type.type=="111123"||type.type=="11112233"){//组合类型
+            var zcy=GMain.PokerTypes[type.type].zcy;
+            var fcy=GMain.PokerTypes[type.type].fcy;
+            var fcyNum=GMain.PokerTypes[type.type].fcyNum;
+            var l=type.length/GMain.PokerTypes[type.type].allNum;
+            SPN=DJDDZ.GetPokerByType(_pokerNumbers,{type:zcy,num:type.num,length:l*GMain.PokerTypes[zcy].allNum});//先选主类型
+            if(SPN.length>0){
+                for(var i=0;i<SPN.length;i++){
+                    for(var j=0;j<_pokerNumbers.length;j++){
+                        if(SPN[i]==_pokerNumbers[j]){
+                            _pokerNumbers.splice(j,1);//删除已选数值
+                            break;
+                        }
+                    }
+                }
+                while(fcyNum>0){
+                    var spn1=DJDDZ.GetPokerByType(_pokerNumbers,{type:fcy,num:0,length:GMain.PokerTypes[fcy].allNum});
+                    for(var i=0;i<spn1.length;i++) SPN[SPN.length]=spn1[i];
+                    fcyNum--;
+                }
+            }
+        }
+    }
+    if(SPN.length!=type.length)SPN=[];//如果选取不成功，则清空选取数据
+    return SPN;
