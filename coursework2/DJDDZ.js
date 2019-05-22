@@ -393,7 +393,6 @@ DJDDZ.GetPokerByType=function(__pokerNumbers,type){//从__pokerNumbers中获取t
         return true;
     }else return false
 }
-
 DJDDZ.PlayPoker=function(){//出选中的牌
     GMain.Poker[4]=[];//清空出牌存储空间
     var _pokerNumbers=[];
@@ -483,7 +482,6 @@ GControls.GrabButton=Class.create(JControls.Button,{
         return true;
     }
 });
-
 GControls.PokerPanel=Class.create(JControls.Object,{
     pokerPanelNum:null
     ,hidePoker:null
