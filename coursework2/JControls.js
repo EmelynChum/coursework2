@@ -382,3 +382,29 @@ JControls.Panel = Class.create(JControls.Object, {//从父类继承
         this.hideTitle();
     }
 });
+
+JControls.Button = Class.create(JControls.Object, {
+    keyCode:null,
+    buttonLabel:null,//Label对象，用于显示按钮上的文字
+    initialize:function ($super,  argP, argWH) {
+        $super( argP, argWH);
+        this.buttonLabel=new JControls.Label({x:0,y:0})//创建了一个Label对象
+            .setSize(argWH).setTextBaseline("middle").setTextAlign("center").setFontType("bold").setFontSize(20);
+        this.addControlInLast([this.buttonLabel]);//添加到当前按钮子对象数组中
+    },
+    setText:function(text){
+        this.buttonLabel.setText(text);
+        return this;
+    },
+    setSize:function(size){
+        if(size){
+            this.size = size;
+            this.buttonLabel.setSize({width:size.width,height:size.height});
+        }
+        return this;
+    },
+    setKeyCode:function(keyCode){
+        this.keyCode=keyCode;
+        return this;
+    }
+});
