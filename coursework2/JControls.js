@@ -454,6 +454,59 @@ JControls.PictureBox = Class.create(JControls.Object, {
     }
 });
 
+JControls.AnimationBox = Class.create(JControls.Object, {
+    imageData:null,
+    animationData:null,
+    animationPlayNum:null,//当前要显示的动画图片编号
+    animationTime:null,//每次显示时计数加1
+    animationOffset:null,//偏移量
+    loop:null,//是否循环播放动画
+    stopPlayAnimation:null,//是否暂停播放动画
+    initialize:function ($super,  argP, argWH, argAnimationData,imagedata) {
+        $super( argP, argWH);
+        this.setAnimation(argAnimationData,imagedata)
+        this.animationPlayNum = 0;
+        this.animationTime = 0;
+        this.animationOffset = {WNum:0, HNum:0};
+        this.loop = true;
+        this.stopPlayAnimation = false;
+    },
+    showing:function ($super, x, y, w, h) {
+        if (this.animationData&&this.imageData) {
+            var w1 = this.imageData.cellSize.width;
+            var h1 = this.imageData.cellSize.height;
+            var x1 = (this.animationData.beginPoint.WNum + this.animationOffset.WNum + this.animationPlayNum) % this.imageData.picNum.WNum;
+            var y1 = this.animationData.beginPoint.HNum + this.animationOffset.HNum + parseInt((this.animationData.beginPoint.WNum
+                + this.animationOffset.WNum + this.animationPlayNum) / this.imageData.picNum.WNum);
+            JMain.JForm.context.drawImage(this.imageData.data, w1 * x1, h1 * y1, w1, h1, x, y, w, h);
+            if(this.isHighLight){//绘制高亮图片
+                JMain.JForm.context.save();
+                JMain.JForm.context.globalCompositeOperation="lighter";
+                JMain.JForm.context.globalAlpha=this.alpha*0.2;
+                JMain.JForm.context.drawImage(this.imageData.data, w1 * x1, h1 * y1, w1, h1, x, y, w, h);
+                JMain.JForm.context.restore();
+            }
+            if (!this.stopPlayAnimation) {
+                this.animationTime++;
+            }
+            if (this.animationTime >= this.animationData.times) {//当计数大于或等于动画次数
+                if (!this.stopPlayAnimation)this.animationPlayNum++;//要显示的动画图片编号加1，
+                if (this.animationPlayNum >= this.animationData.allPlayNum) {
+                    if (this.loop)this.animationPlayNum = 0;//循环播放
+                    else this.remove();//已播放到末尾，删除该对象
+                }
+                this.animationTime = 0;//重置计数
+            }
+        }
+        $super( x, y, w, h);
+    },
+    setAnimation:function (animationData,imageData) {//设置动画资源
+        if(imageData)this.imageData=imageData;
+        if(animationData)this.animationData = animationData;
+        return this;
+    }
+});
+
 JControls.Label = Class.create(JControls.Object, {//从父类继承
     text:"",//显示文本
     textPos:null,//用于调整文字在Label中得位置
