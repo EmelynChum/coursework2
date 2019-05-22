@@ -302,3 +302,184 @@ DJDDZ.GetPokerByType=function(__pokerNumbers,type){//从__pokerNumbers中获取t
     }
     if(SPN.length!=type.length)SPN=[];//如果选取不成功，则清空选取数据
     return SPN;
+
+    DJDDZ.AISelectPoker=function(){//AI选牌
+    var _pokerNumbers=[];
+    for(var i=GMain.Poker[GMain.DealerNum].length-1;i>=0;i--){
+        _pokerNumbers[_pokerNumbers.length]=GMain.Poker[GMain.DealerNum][i].pokerNumber;
+    }
+    var SPN=[];
+    if(DJDDZ.CheckPlayPoker(_pokerNumbers)){//如果只有一手牌，直接出完
+        SPN=_pokerNumbers;
+    }else{
+        if(GMain.LastHandNum==0){//本轮第一手牌
+            var splitPoker=DJDDZ.SplitPoker(_pokerNumbers);
+            if(splitPoker["111"].length>0){
+                //出3条或飞机，优先飞机
+                if(splitPoker["111"][0]<7||(splitPoker["1"].length==0&&splitPoker["11"].length==0)){
+                    if(splitPoker["11"].length>0&&(splitPoker["11"][0]<7||splitPoker["1"].length==0)){
+                        for(var i=GMain.PokerTypes["11122"].maxL;i>0;i--){
+                            SPN=DJDDZ.GetPokerByType(_pokerNumbers,{type:"11122",num:0,length:5*i});
+                            if(SPN.length>0)break;
+                        }
+                    }
+                    if(SPN.length==0&&splitPoker["1"].length>0&&splitPoker["1"][0]<15){
+                        for(var i=GMain.PokerTypes["1112"].maxL;i>0;i--){
+                            SPN=DJDDZ.GetPokerByType(_pokerNumbers,{type:"1112",num:0,length:4*i});
+                            if(SPN.length>0)break;
+                        }
+                    }
+                    if(SPN.length==0){
+                        for(var i=GMain.PokerTypes["111"].maxL;i>0;i--){
+                            SPN=DJDDZ.GetPokerByType(_pokerNumbers,{type:"111",num:0,length:3*i});
+                            if(SPN.length>0)break;
+                        }
+                    }
+                }
+            }
+            if(SPN.length==0){
+                var nn=[];
+                for(var x=1;x<=3;x++){
+                    if(GMain.Poker[x].length==1||GMain.Poker[x].length==2){
+                        if(GMain.DealerNum==GMain.LandlordNum){
+                            if(GMain.DealerNum!=x)nn[GMain.Poker[x].length]=true;
+                        }else{
+                            if(GMain.LandlordNum==x)nn[GMain.Poker[x].length]=true;
+                        }
+                    }
+                }
+                if((splitPoker["11"].length>0&&splitPoker["1"].length>0&&(splitPoker["11"][0]<splitPoker["1"][0]||nn[1]))
+                    ||(splitPoker["11"].length>0&&splitPoker["1"].length==0)){
+                    //出连对
+                    for(var i=GMain.PokerTypes["11"].maxL;i>2;i--){
+                        SPN=DJDDZ.GetPokerByType(_pokerNumbers,{type:"11",num:0,length:2*i});
+                        if(SPN.length>0)break;
+                    }
+                    if(SPN.length==0) SPN=DJDDZ.GetPokerByType(_pokerNumbers,{type:"11",num:0,length:2});//出对子
+                }else{
+
+                  if(splitPoker["1"].length>0) SPN[SPN.length]=splitPoker["1"][0];//出单牌
+                }
+            }
+            if(SPN.length==0)SPN=DJDDZ.GetPokerByType(_pokerNumbers,{type:"1111",num:0,length:4});//出炸弹
+            if(SPN.length==0)SPN=DJDDZ.GetPokerByType(_pokerNumbers,{type:"12",num:0,length:2});//出王炸
+        }else{
+            if(GMain.LastHandPokerType.type!="12"){
+                if(GMain.LandlordNum==GMain.DealerNum||GMain.LastHandNum==GMain.LandlordNum){//如果AI是地主或接地主的牌
+                    SPN=DJDDZ.GetPokerByType(_pokerNumbers,GMain.LastHandPokerType);
+                    if(SPN.length==0&&GMain.LastHandPokerType.type!="1111")SPN=DJDDZ.GetPokerByType(_pokerNumbers,{type:"1111",num:0,length:4});
+                    if(SPN.length==0)SPN=DJDDZ.GetPokerByType(_pokerNumbers,{type:"12",num:0,length:2});
+                }else{//接同伴的牌
+                    if(GMain.Poker[GMain.LastHandNum].length>5){
+                        if((GMain.LastHandPokerType.type=="1"&&GMain.LastHandPokerType.length==1)
+                            ||(GMain.LastHandPokerType.type=="11"&&GMain.LastHandPokerType.length==2)){
+                            SPN=DJDDZ.GetPokerByType(_pokerNumbers,GMain.LastHandPokerType);
+                            if(SPN.length>0&&SPN[0]>10)SPN=[];
+                        }
+                    }
+                }
+            }
+        }
+    }
+    if(SPN.length>0){
+        for(var i=0;i<SPN.length;i++){
+            for(var j=GMain.Poker[GMain.DealerNum].length-1;j>=0;j--){
+                if(!GMain.Poker[GMain.DealerNum][j].isSelected&&GMain.Poker[GMain.DealerNum][j].pokerNumber==SPN[i]){
+                    GMain.Poker[GMain.DealerNum][j].isSelected=true;//选牌
+                    break;
+                }
+            }
+        }
+        return true;
+    }else return false
+}
+
+DJDDZ.PlayPoker=function(){//出选中的牌
+    GMain.Poker[4]=[];//清空出牌存储空间
+    var _pokerNumbers=[];
+    for(var i=GMain.Poker[GMain.DealerNum].length-1;i>=0;i--){
+        if(GMain.Poker[GMain.DealerNum][i].isSelected){
+            _pokerNumbers[_pokerNumbers.length]=GMain.Poker[GMain.DealerNum][i].pokerNumber;
+            GMain.Poker[4].splice(GMain.Poker[4].length,0,GMain.Poker[GMain.DealerNum][i]);
+            GMain.Poker[GMain.DealerNum].splice(i,1);
+        }
+    }
+    GMain.LastHandNum=GMain.DealerNum;//本轮最后一手牌标识
+    GMain.LastHandPokerType=DJDDZ.GetPokerType(_pokerNumbers);//设置最后一手牌牌型
+    if(GMain.Poker[GMain.DealerNum].length==0)DJDDZ.GameOver();//牌出完，游戏结束
+}
+var GMain={
+    Size:{width:800, height:480}//屏幕大小
+    ,URL:""
+    ,Poker:null
+    ,LandlordNum:null//地主编号
+    ,BeginNum:null//发牌开始编号
+    ,DealerNum:null//当前操作编号
+    ,MaxScore:null//抢牌最高分
+    ,GrabTime:null//抢牌次数
+    ,DealingHandle:null//发牌句柄
+    ,DealingNum:null//已发牌数
+    ,PokerSize:{width:100,height:120}//扑克牌大小
+    ,LastHandNum:null//标示谁出的最后一手牌
+    ,LastHandPokerType:null//最后一手牌类型
+    ,ToPlay:null//已抢完地主，出牌中
+    ,PokerTypes:{//扑克牌类型
+        "1":{weight:1,allNum:1,minL:5,maxL:12}
+        ,"11":{weight:1,allNum:2,minL:3,maxL:10}
+        ,"111":{weight:1,allNum:3,minL:1,maxL:6}
+        ,"1111":{weight:2,allNum:4,minL:1,maxL:1}
+        ,"1112":{weight:1,zcy:"111",fcy:"1",fcyNum:1,allNum:4,minL:1,maxL:5}
+        ,"11122":{weight:1,zcy:"111",fcy:"11",fcyNum:1,allNum:5,minL:1,maxL:4}
+        ,"111123":{weight:1,zcy:"1111",fcy:"1",fcyNum:2,allNum:6,minL:1,maxL:1}
+        ,"11112233":{weight:1,zcy:"1111",fcy:"11",fcyNum:2,allNum:8,minL:1,maxL:1}
+        ,"12":{weight:3,allNum:2,minL:1,maxL:1}
+    }
+}
+var GControls={};
+GControls.Poker=Class.create(JControls.Object,{
+    pokerNumber:null
+    ,seNumber:null
+    ,imageData:null
+    ,isHidePoker:true
+    ,isSelected:null
+    ,initialize:function ($super,imageName){
+        $super();
+        this.setSize(GMain.PokerSize);
+        this.imageData=ResourceData.Images[imageName];
+        this.pokerNumber=this.imageData.num;
+        this.seNumber=this.imageData.se;
+        this.isSelected=false;
+    }
+    ,beginShow:function($super){
+        $super();
+        if(this.isHidePoker)this.setBGImage(ResourceData.Images.BeiMian);
+        else this.setBGImage(this.imageData);
+    }
+    ,onClick:function(){
+        if(this.parent.toSelectPoker){
+            this.isSelected=!this.isSelected;
+            JMain.JForm.show();
+            return true;
+        }
+        return false;
+    }
+});
+GControls.GrabButton=Class.create(JControls.Button,{
+    score:null
+    ,initialize:function ($super,  argP, argWH,score) {
+        $super( argP, argWH);
+        this.score=score;
+        if(this.score&&this.score<=GMain.MaxScore)this.visible=false;
+    }
+    ,onClick:function(){
+        if(this.score){
+            GMain.MaxScore=this.score;
+            GMain.LandlordNum=GMain.DealerNum;
+        }
+        GMain.DealerNum++;
+        GMain.GrabTime++;
+        GMain.BtnPanel.visible=false;
+        DJDDZ.GrabTheLandlord();
+        return true;
+    }
+});
