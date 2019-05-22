@@ -375,4 +375,10 @@ JControls.Panel = Class.create(JControls.Object, {//从父类继承
             this.closeButton.visible=true;
         }
     },
+    onCloseButtonClick:null,
+    clearControls:function($super){
+        $super();
+        this.initTitle();
+        this.hideTitle();
+    }
 });
