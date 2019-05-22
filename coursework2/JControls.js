@@ -702,3 +702,87 @@ JFunction.PreLoadData = function (url) {
         }
     }
 };
+
+//获取图片数据
+JFunction.getImageData=function (_context, _point, _size) {
+    return _context.getImageData(_point.x, _point.y, _size.width, _size.height);
+};
+//通过图片数据绘制图片
+JFunction.drawImageData=function (_context, _imgdata, _point, _dPoint, _dSize) {
+    if (!_dPoint)_dPoint = {x:0, y:0};
+    if (!_dSize)_dSize = {width:_imgdata.width, height:_imgdata.height};
+    _context.putImageData(_imgdata, _point.x, _point.y, _dPoint.x, _dPoint.y, _dSize.width, _dSize.height);
+};
+//颜色反转
+JFunction.invert=function (_imgData) {
+    var imageData = _imgData;
+    for (var i = 0; i < imageData.data.length; i += 4) {
+        var red = imageData.data[i], green = imageData.data[i + 1], blue = imageData.data[i + 2], alpha = imageData.data[i + 3];
+        imageData.data[i] = 255 - red;
+        imageData.data[i + 1] = 255 - green;
+        imageData.data[i + 2] = 255 - blue;
+        imageData.data[i + 3] = alpha;
+    }
+    return imageData;
+};
+//灰色
+JFunction.changeToGray=function (_imgData) {
+    var imageData = _imgData;
+    for (var i = 0; i < imageData.data.length; i += 4) {
+        var wb = parseInt((imageData.data[i] + imageData.data[i + 1] + imageData.data[i + 2]) / 3);
+        imageData.data[i] = wb;
+        imageData.data[i + 1] = wb;
+        imageData.data[i + 2] = wb;
+    }
+    return imageData;
+};
+//加红
+JFunction.changeToRed=function (_imgData) {
+    var imageData = _imgData;
+    for (var i = 0; i < imageData.data.length; i += 4) {
+        imageData.data[i] += 50;
+        if (imageData.data[i] > 255) imageData.data[i] = 255;
+
+    }
+    return imageData;
+};
+//图片旋转
+JFunction.rotate=function (_context, _imageData, angle) {
+    var returnData = _context.createImageData(_imageData.width, _imageData.height);
+    var w, h, i, j, newPoint, x, y;
+    var centerX = _imageData.width / 2.0;
+    var centerY = _imageData.height / -2.0;
+    var PI = 3.14159;
+    for (h = 0; h < returnData.height; h++) {
+        for (w = 0; w < returnData.width; w++) {
+            i = (_imageData.width * h + w) * 4;
+            newPoint = GetNewPoint({x:w, y:h * -1});
+            x = parseInt(newPoint.x);
+            y = parseInt(newPoint.y);
+            if (x >= 0 && x < _imageData.width && -y >= 0 && -y < _imageData.height) {
+                j = (_imageData.width * -y + x) * 4;
+                returnData.data[i] = _imageData.data[j];
+                returnData.data[i + 1] = _imageData.data[j + 1];
+                returnData.data[i + 2] = _imageData.data[j + 2];
+                returnData.data[i + 3] = _imageData.data[j + 3];
+            }
+        }
+    }
+    return returnData;
+    function GetNewPoint(_point) {
+        var l = (angle * PI) / 180;
+        var newX = (_point.x - centerX) * Math.cos(l) - (_point.y - centerY) * Math.sin(l);
+        var newY = (_point.x - centerX) * Math.sin(l) + (_point.y - centerY) * Math.cos(l);
+        return {x:newX + centerX, y:newY + centerY};
+    }
+};
+//高亮整个图片
+JFunction.highLight=function (_imgData, n) {
+    var imageData = _imgData;
+    for (var i = 0; i < imageData.data.length; i += 4) {
+        imageData.data[i]  = (imageData.data[i] +n)>255?255:(imageData.data[i] +n);
+        imageData.data[i + 1] = (imageData.data[i+1] +n)>255?255:(imageData.data[i+1] +n);
+        imageData.data[i + 2 ] = (imageData.data[i+2] +n)>255?255:(imageData.data[i+2] +n);
+    }
+    return imageData;
+};
