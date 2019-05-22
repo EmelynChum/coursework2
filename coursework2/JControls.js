@@ -631,3 +631,31 @@ JFunction.setLSData = function (key, jsonValue) {
 JFunction.getLSData = function (key) {
     return JSON.parse(window.localStorage.getItem(key));
 };
+
+JFunction.getNowTime=function(){
+    var now = new Date();
+    var year = now.getFullYear();       //年
+    var month = now.getMonth() + 1;     //月
+    var day = now.getDate();            //日
+    var hh = now.getHours(); //时
+    var mm = now.getMinutes();  //分
+    return year+"/"+month+"/"+day+" "+hh+":"+mm;
+};
+JFunction.PreLoadData = function (url) {
+    var loadedNum = 0;//已加载资源数量
+    var resourceNum = 0;//资源数量
+    var postAction = function () {};//资源加载完成后的回调函数
+    function imageLoadPost() {//每成功加载一个图片执行一次
+        loadedNum++;
+        if (loadedNum >= resourceNum) {//全部图片文件加载完后，继续加载声音
+            loadedNum=0;
+            resourceNum=0;
+            loadAudio()
+        }
+    }
+    function audioLoadPost() {//每成功加载一个声音执行一次
+        loadedNum++;
+        if (loadedNum >= resourceNum) {//全部声音文件加载完后，执行回调函数
+            postAction()
+        }
+    }
