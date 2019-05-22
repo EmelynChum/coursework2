@@ -659,3 +659,18 @@ JFunction.PreLoadData = function (url) {
             postAction()
         }
     }
+
+    function loadImage(){//加载图片
+        for (var m2 in ResourceData.Images)  resourceNum++;
+        if(resourceNum==0){
+            imageLoadPost();
+        }else{
+            for (var m2 in ResourceData.Images) {
+                ResourceData.Images[m2].data = new Image();
+                ResourceData.Images[m2].data.src = url+ResourceData.Images[m2].path;
+                ResourceData.Images[m2].data.onload = function () {
+                    imageLoadPost();
+                }
+            }
+        }
+    }
