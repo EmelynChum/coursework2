@@ -695,7 +695,10 @@ JFunction.PreLoadData = function (url) {
                 ResourceData.Sound[m1].data.addEventListener("canplaythrough", function () {
                     audioLoadPost();
                 }, false);
-                
+                ResourceData.Sound[m1].data.addEventListener("error", function () {
+                    alert("资源加载失败！")
+                    return;
+                }, false);
             }
         }
     }
