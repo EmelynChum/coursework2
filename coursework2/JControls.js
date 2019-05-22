@@ -530,3 +530,94 @@ JControls.Label = Class.create(JControls.Object, {//从父类继承
         }
     }
 });
+
+JControls.MessageBox = Class.create(JControls.Object, {
+    initialize:function ($super,  argWH, argAString,argP) {
+        //如果没有指定显示位置，则居中显示
+        if(!argP)argP={x:parseInt((JMain.JForm.size.width - argWH.width) / 2), y:parseInt((JMain.JForm.size.height - argWH.height) / 2)};
+        $super(argP, argWH);
+        this.BGColor = JColor.white;
+        JMain.JForm.addControlInLast([this]);//把消息框添加到主窗体内
+        var messageTitle = new JControls.Label({x:0, y:0}, "系统提示");
+        messageTitle.BGColor = JColor.blue;
+        messageTitle.fontColor = JColor.red;
+        messageTitle.size.width = argWH.width;
+        messageTitle.size.height = 25;
+        messageTitle.fontSize = 20;
+        messageTitle.fontType = "bold";
+        this.addControlInLast([messageTitle]);//添加消息标题栏
+        var h = messageTitle.size.height;
+        for (var i = 0; i < argAString.length; i++) {//添加消息内容
+            var m = new JControls.Label({x:0, y:h}, argAString[i]);
+            m.size.width = argWH.width;
+            m.textPos.x = 10;
+            h += m.size.height;
+            this.addControlInLast([m]);
+        }
+        this.size.height = h+20;
+    },
+    onClick:function () {//点击后，删除对象
+        this.remove.call(this);
+        JMain.JForm.show();
+    }
+});
+JControls.Audio = Class.create({
+    audioData:null,//Audio数据
+    initialize:function (audio,loop) {
+        this.setAudio(audio,loop);
+    },
+    setAudio:function(audio,loop){
+        if(audio){
+            this.audioData = audio.data;
+            if(loop)this.audioData.loop=true;
+        }
+    },
+    play:function () {
+        if (this.audioData)this.audioData.play();
+    },
+    pause:function () {
+        if (this.audioData)this.audioData.pause();
+    }
+});
+JControls.Tick = Class.create({
+    time:40,//间隔时间
+    fun:[],//要循环显示的对象数组
+    handle:null,//句柄
+    initialize:function(time){
+        this.time=time;
+        this.fun=[];
+        this.handle=null;
+    },
+    begin:function(){
+        this.handle=setTimeout(this.runOneTime, this.time);
+    },
+    end:function(){
+        if(this.handle)clearTimeout(this.handle);
+    },
+    add:function(aObj){
+        if(aObj){
+            for (var i = 0; i < aObj.length; i++) {
+                this.fun[this.fun.length]=aObj[i];
+            }
+        }
+    },
+    delete:function(obj){
+        if(obj){
+            for(var i=0;i<this.fun.length;i++){
+                if(this.fun[i].ID==obj.ID){
+                    for(var j=i;j<this.fun.length-1;j++){
+                        this.fun[j]=this.fun[j+1];
+                    }
+                    this.fun.length--;
+                }
+            }
+        }
+    },
+    runOneTime:function(){
+        JMain.JTick.end();
+        for(var i=0;i<JMain.JTick.fun.length;i++){
+            if(JMain.JTick.fun[i])JMain.JTick.fun[i].show.call(JMain.JTick.fun[i]);
+        }
+        JMain.JTick.handle=setTimeout(JMain.JTick.runOneTime, JMain.JTick.time);
+    }
+});
