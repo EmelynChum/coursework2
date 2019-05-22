@@ -382,7 +382,6 @@ JControls.Panel = Class.create(JControls.Object, {//从父类继承
         this.hideTitle();
     }
 });
-
 JControls.Button = Class.create(JControls.Object, {
     keyCode:null,
     buttonLabel:null,//Label对象，用于显示按钮上的文字
@@ -408,7 +407,6 @@ JControls.Button = Class.create(JControls.Object, {
         return this;
     }
 });
-
 JControls.PictureBox = Class.create(JControls.Object, {
     picture:null,//图片数据
     picAlpha:null,//t透明度
@@ -453,7 +451,6 @@ JControls.PictureBox = Class.create(JControls.Object, {
         $super(x, y, w, h);//执行父类中showing函数
     }
 });
-
 JControls.AnimationBox = Class.create(JControls.Object, {
     imageData:null,
     animationData:null,
@@ -506,7 +503,6 @@ JControls.AnimationBox = Class.create(JControls.Object, {
         return this;
     }
 });
-
 JControls.Label = Class.create(JControls.Object, {//从父类继承
     text:"",//显示文本
     textPos:null,//用于调整文字在Label中得位置
@@ -583,7 +579,6 @@ JControls.Label = Class.create(JControls.Object, {//从父类继承
         }
     }
 });
-
 JControls.MessageBox = Class.create(JControls.Object, {
     initialize:function ($super,  argWH, argAString,argP) {
         //如果没有指定显示位置，则居中显示
@@ -684,7 +679,6 @@ JFunction.setLSData = function (key, jsonValue) {
 JFunction.getLSData = function (key) {
     return JSON.parse(window.localStorage.getItem(key));
 };
-
 JFunction.getNowTime=function(){
     var now = new Date();
     var year = now.getFullYear();       //年
@@ -712,7 +706,6 @@ JFunction.PreLoadData = function (url) {
             postAction()
         }
     }
-
     function loadImage(){//加载图片
         for (var m2 in ResourceData.Images)  resourceNum++;
         if(resourceNum==0){
@@ -731,7 +724,6 @@ JFunction.PreLoadData = function (url) {
             }
         }
     }
-
     function loadAudio(){//加载声音
         for (var m1 in ResourceData.Sound)  resourceNum++;
         if(resourceNum==0){
@@ -762,7 +754,6 @@ JFunction.PreLoadData = function (url) {
         }
     }
 };
-
 //获取图片数据
 JFunction.getImageData=function (_context, _point, _size) {
     return _context.getImageData(_point.x, _point.y, _size.width, _size.height);
