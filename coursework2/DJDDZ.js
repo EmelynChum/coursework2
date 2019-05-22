@@ -483,3 +483,63 @@ GControls.GrabButton=Class.create(JControls.Button,{
         return true;
     }
 });
+
+GControls.PokerPanel=Class.create(JControls.Object,{
+    pokerPanelNum:null
+    ,hidePoker:null
+    ,density:null
+    ,toSelectPoker:null
+    ,initialize:function ($super,argP, argWH,num,density){
+        $super(argP, argWH);
+        this.pokerPanelNum=num;
+        //this.hidePoker=hidePoker;
+        if(density!=null)this.density=density;
+        else this.density=20;
+    }
+    ,beginShow:function($super){
+        GMain.Poker[this.pokerPanelNum].sort(sortNumber);
+        var l=GMain.Poker[this.pokerPanelNum].length;
+        for(var i=0;i<l;i++){
+            var x= 0,y= 0;
+            if(this.pokerPanelNum==2||this.pokerPanelNum==3){//竖直
+                var h=GMain.PokerSize.height+(l-1)*this.density;
+                y=(this.size.height-h)/2.0+i*this.density;
+            }else{//水平
+                var w=GMain.PokerSize.width+(l-1)*this.density;
+                x=(this.size.width-w)/2.0+i*this.density;
+                if(this.toSelectPoker&&GMain.Poker[this.pokerPanelNum][i].isSelected) y=-20;
+            }
+            GMain.Poker[this.pokerPanelNum][i].setRelativePosition({x:x,y:y});
+            if(this.hidePoker)GMain.Poker[this.pokerPanelNum][i].isHidePoker=true;
+            else GMain.Poker[this.pokerPanelNum][i].isHidePoker=false;
+        }
+        this.clearControls();
+        this.addControlInLast(GMain.Poker[this.pokerPanelNum]);
+        if(GMain.ToPlay){
+            var label1=new JControls.Label().setFontType("bold").setFontSize(20).setTextAlign("left").setTextBaseline("bottom").setFontColor(JColor.red);
+            var label2=new JControls.Label().setFontType("bold").setFontSize(20).setTextAlign("left").setTextBaseline("bottom").setFontColor(JColor.blue);
+            if(this.pokerPanelNum==GMain.LandlordNum)label1.setText("地主")
+            else label1.setText("")
+            if(this.pokerPanelNum==GMain.LastHandNum)label2.setText("出牌")
+            else label2.setText("")
+            if(this.pokerPanelNum==1){
+                label1.setRelativePosition({x:80,y:-30});
+                label2.setRelativePosition({x:200,y:-30});
+                this.addControlInLast([label1,label2]);
+            }else if(this.pokerPanelNum==2){
+                label1.setRelativePosition({x:-30,y:50});
+                label2.setRelativePosition({x:-30,y:150});
+                this.addControlInLast([label1,label2]);
+            }else if(this.pokerPanelNum==3){
+                label1.setRelativePosition({x:105,y:50});
+                label2.setRelativePosition({x:105,y:150});
+                this.addControlInLast([label1,label2]);
+            }
+        }
+        $super();
+        function sortNumber(a, b){
+            if(b.pokerNumber==a.pokerNumber)return b.seNumber- a.seNumber;
+            else return b.pokerNumber-a.pokerNumber;
+        }
+    }
+});
