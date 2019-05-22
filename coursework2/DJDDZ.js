@@ -161,4 +161,51 @@ DJDDZ.ToPlay=function(){//出牌
         GMain.DealerNum++;
         setTimeout(DJDDZ.ToPlay, 1500);//暂停1500毫秒，下一位出牌
     }
+DJDDZ.CheckPlayPoker=function(_pokerNumbers){//检查出牌是否符合规则,pokerNumbers从小到大排序
+    var pokerType=DJDDZ.GetPokerType(_pokerNumbers);
+    if(pokerType==null)return false;//没有获取到牌型
+    if(GMain.LastHandNum==0)return true;//如果是该轮首牌，任何牌型都可以
+    else{
+        //与该轮出的最后一手牌比较
+        if(GMain.PokerTypes[pokerType.type].weight>GMain.PokerTypes[GMain.LastHandPokerType.type].weight)return true;//当前牌型可以压前一手牌型
+        else if (GMain.PokerTypes[pokerType.type].weight==GMain.PokerTypes[GMain.LastHandPokerType.type].weight){//当前牌型不可以压前一手牌型
+            if(pokerType.type==GMain.LastHandPokerType.type&&pokerType.length==GMain.LastHandPokerType.length){//牌型与出牌数都相同
+                if(pokerType.num>GMain.LastHandPokerType.num)return true;//数值大的压数值小的
+                else return false;
+            }else return false;
+        }else return false;
+    }
+};
+DJDDZ.SplitPoker=function(__pokerNumbers , chaiNum){//__pokerNumbers已排序，从小到大
+    var splitPoker={};
+    for(var type in GMain.PokerTypes) splitPoker[type]=[];
+    if(chaiNum==null)chaiNum=3;
+    if(__pokerNumbers!=null&&__pokerNumbers.length>0){
+        var _pokerNumbers=[];
+        var i,j;
+        for(i=0;i<__pokerNumbers.length;i++) _pokerNumbers[i]=__pokerNumbers[i];//_pokerNumbers从小到大
+        if(_pokerNumbers[_pokerNumbers.length-1]==18&&_pokerNumbers[_pokerNumbers.length-2]==17){
+            splitPoker["12"].splice(0,0,17);
+            _pokerNumbers.length=_pokerNumbers.length-2;
+        }
+        for(i=chaiNum;i>=0;i--){
+            var str="1";
+            for(var i1=1;i1<=i;i1++)str=str+String(1);
+            for(j=_pokerNumbers.length-1;j>=i;j--){
+                if(_pokerNumbers[j]==_pokerNumbers[j-i]){
+                    splitPoker[str].splice(0,0,_pokerNumbers[j]);// splitPoker[str]从小到大
+                    for(var k=j;k>=j-i;k--){
+                        _pokerNumbers.splice(k,1);
+                    }
+                }
+            }
+        }
+    }
+    return splitPoker;
+};
+DJDDZ.IsStraight=function(numbers){//numbers已排序，从小到大
+    for(var i=1;i<numbers.length;i++){
+        if(numbers[i]-numbers[i-1]!=1)return false;
+    }
+    return true;
 }
